@@ -91,6 +91,6 @@ app.get('/', (req, res) => {
 
 // 🎧 Sunucuyu dinleme
 server.listen(port, () => {
-  console.log(`🚀 Sunucu ${PORT} portunda çalışıyor.`);
+  console.log(`🚀 Sunucu ${port} portunda çalışıyor.`);
  
 });
