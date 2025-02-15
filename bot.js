@@ -1,9 +1,16 @@
 const express = require('express');
 const mineflayer = require('mineflayer');
 const path = require('path');
+const http = require('http');
+const socketIo = require('socket.io');
+const cors = require('cors');
 
 const app = express();
 const port = 3000;
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: { origin: "*" } // CORS politikası: Herkese açık
+});
 
 let bot = null;
 let botStatus = 'Kapalı'; // Botun durumu (Kapalı, Başlatılıyor, Bağlandı, Hata Aldı)
@@ -11,6 +18,8 @@ let errorMessage = ''; // Hata mesajını saklamak için
 
 // Statik dosyaları sunmak için
 app.use(express.static(path.join(__dirname, 'public')));
+// CORS Middleware
+app.use(cors());
 
 // Botu başlatan ve durduran fonksiyon
 function toggleBot() {
@@ -54,6 +63,11 @@ function toggleBot() {
             bot = null;
             console.log('Bot sunucudan ayrıldı.');
         });
+                // 🎤 Sunucudaki chati dinleme
+          bot.on('chat', (username, message) => {
+            console.log(`[${username}]: ${message}`);
+            io.emit('chatMessage', { username, message }); // Veriyi gerçek zamanlı olarak gönder
+          });
 
         return true;
     }
@@ -75,7 +89,8 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Sunucuyu başlat
-app.listen(port, () => {
-    console.log(`Sunucu çalışıyor: http://localhost:${port}`);
+// 🎧 Sunucuyu dinleme
+server.listen(PORT, () => {
+  console.log(`🚀 Sunucu ${PORT} portunda çalışıyor.`);
+ 
 });
