@@ -90,7 +90,7 @@ app.get('/', (req, res) => {
 });
 
 // 🎧 Sunucuyu dinleme
-server.listen(PORT, () => {
+server.listen(port, () => {
   console.log(`🚀 Sunucu ${PORT} portunda çalışıyor.`);
  
 });
