@@ -83,6 +83,15 @@ app.get('/toggle', (req, res) => {
     const status = toggleBot();
     res.json({ botActive: status, botStatus, error: errorMessage });
 });
+  // Oyuncu bilgilerini JSON olarak döndüren API
+app.get('/api/players', (req, res) => {
+    // Botun bildiği oyuncuları JSON formatında döndürme
+    const players = Object.keys(bot.players);
+    res.json({
+      players: players
+    });
+  });
+
 
 // Ana sayfayı sun
 app.get('/', (req, res) => {
