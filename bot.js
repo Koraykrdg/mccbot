@@ -11,10 +11,10 @@ let bot;
 // Botu başlatmak için fonksiyon
 function startBot() {
   bot = mineflayer.createBot({
-    host: 'sunucu_adresi',  // Minecraft sunucusunun IP adresi veya domaini
-    port: 25565,            // Sunucunun portu
-    username: 'bot_adi',    // Botun ismi
-    version: '1.16.5'       // Minecraft sürümü
+    host: 'mc.toxiox.rf.gd',  // Minecraft sunucusunun IP adresi veya domaini
+    port: 28202,            // Sunucunun portu
+    username: 'txtvs',    // Botun ismi
+    version: '1.21.4'       // Minecraft sürümü
   });
 
   bot.on('spawn', () => {
