@@ -5,7 +5,10 @@ const mineflayer = require('mineflayer');
 const app = express();
 const port = 3000;
 
-const bot = mineflayer.createBot({
+
+function startBot() {
+
+    const bot = mineflayer.createBot({
   host: 'mc.toxiox.rf.gd',  // Minecraft sunucusunun IP adresi veya domaini
   port: 28202,            // Sunucunun portu (genellikle 25565)
   username: 'txtsv',    // Botun ismi
@@ -32,11 +35,14 @@ bot.on('end', () => {
   console.log('Bot sunucudan ayrıldı.');
 });
 
+  
+}
+
 
 // Express.js sunucusunu başlat
 app.listen(port, () => {
   console.log(`Sunucu ${port} portunda çalışıyor`);
 
   // Express başlatıldığında botu çalıştır
-  startBot();
+startBot();
 });
