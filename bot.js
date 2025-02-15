@@ -1,48 +1,81 @@
 const express = require('express');
 const mineflayer = require('mineflayer');
+const path = require('path');
 
-// Express uygulaması
 const app = express();
 const port = 3000;
 
+let bot = null;
+let botStatus = 'Kapalı'; // Botun durumu (Kapalı, Başlatılıyor, Bağlandı, Hata Aldı)
+let errorMessage = ''; // Hata mesajını saklamak için
 
-function startBot() {
+// Statik dosyaları sunmak için
+app.use(express.static(path.join(__dirname, 'public')));
 
-    const bot = mineflayer.createBot({
-  host: 'mc.toxiox.rf.gd',  // Minecraft sunucusunun IP adresi veya domaini
-  port: 28202,            // Sunucunun portu (genellikle 25565)
-  username: 'txtsv',    // Botun ismi
-  version: '1.21.4'       // Minecraft sürümü
-});
+// Botu başlatan ve durduran fonksiyon
+function toggleBot() {
+    if (bot) {
+        bot.quit();
+        bot = null;
+        botStatus = 'Kapalı';
+        errorMessage = ''; // Hata mesajını temizle
+        console.log('Bot kapatıldı.');
+        return false;
+    } else {
+        botStatus = 'Başlatılıyor...';
+        console.log('Bot başlatılıyor...');
 
-bot.on('spawn', () => {
-  console.log('Bot başarıyla sunucuya bağlandı!');
+        bot = mineflayer.createBot({
+            host: 'mc.toxiox.rf.gd',
+            port: 28202,
+            username: 'txtsv',
+            version: '1.21.4'
+        });
 
-  // Botu her 10 saniyede bir hareket ettirerek AFK olmasını engelliyoruz
-  setInterval(() => {
-    bot.setControlState('forward', true);  // Botu ileri hareket ettir
-    setTimeout(() => {
-      bot.setControlState('forward', false);  // Hareketi durdur
-    }, 1000);  // 1 saniye sonra hareketi durdur
-  }, 10000);  // Her 10 saniyede bir hareket et
-});
+        bot.on('spawn', () => {
+            botStatus = 'Bağlandı!';
+            console.log('Bot sunucuya bağlandı!');
+            bot.afkInterval = setInterval(() => {
+                bot.setControlState('forward', true);
+                setTimeout(() => {
+                    bot.setControlState('forward', false);
+                }, 1000);
+            }, 10000);
+        });
 
-bot.on('error', (err) => {
-  console.log('Bot hata aldı: ', err);
-});
+        bot.on('error', (err) => {
+            botStatus = 'Hata Aldı!';
+            errorMessage = 'Bot hata aldı: ' + err.message;
+            console.log('Bot hata aldı: ', err);
+        });
 
-bot.on('end', () => {
-  console.log('Bot sunucudan ayrıldı.');
-});
+        bot.on('end', () => {
+            botStatus = 'Kapalı';
+            bot = null;
+            console.log('Bot sunucudan ayrıldı.');
+        });
 
-  
+        return true;
+    }
 }
 
+// Bot durumunu kontrol eden endpoint
+app.get('/status', (req, res) => {
+    res.json({ botActive: !!bot, botStatus, error: errorMessage });
+});
 
-// Express.js sunucusunu başlat
+// Botu aç/kapat endpoint
+app.get('/toggle', (req, res) => {
+    const status = toggleBot();
+    res.json({ botActive: status, botStatus, error: errorMessage });
+});
+
+// Ana sayfayı sun
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Sunucuyu başlat
 app.listen(port, () => {
-  console.log(`Sunucu ${port} portunda çalışıyor`);
-
-  // Express başlatıldığında botu çalıştır
-startBot();
+    console.log(`Sunucu çalışıyor: http://localhost:${port}`);
 });
