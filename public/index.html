@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bot Kontrol</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        button {
+            font-size: 20px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        #status {
+            font-size: 18px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        #error-message {
+            color: red;
+            font-weight: bold;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Minecraft Bot Kontrol</h1>
+    <button id="botButton" onclick="toggleBot()">Botu Başlat</button>
+    <p id="status">Durum: Kapalı</p>
+    <p id="error-message"></p>
+
+    <script>
+        async function toggleBot() {
+            document.getElementById("status").innerText = "Durum: Başlatılıyor...";
+            const response = await fetch('/toggle');
+            const data = await response.json();
+            updateUI(data);
+        }
+
+        async function checkStatus() {
+            const response = await fetch('/status');
+            const data = await response.json();
+            updateUI(data);
+        }
+
+        function updateUI(data) {
+            const button = document.getElementById("botButton");
+            const status = document.getElementById("status");
+            const errorMessage = document.getElementById("error-message");
+
+            status.innerText = "Durum: " + data.botStatus;
+
+            if (data.botActive) {
+                button.innerText = "Botu Durdur";
+                button.style.backgroundColor = "red";
+            } else {
+                button.innerText = "Botu Başlat";
+                button.style.backgroundColor = "green";
+            }
+
+            if (data.error) {
+                errorMessage.innerText = data.error;
+                errorMessage.style.display = "block";
+            } else {
+                errorMessage.style.display = "none";
+            }
+        }
+
+        setInterval(checkStatus, 3000); // Her 3 saniyede bir durumu kontrol et
+    </script>
+
+</body>
+</html>
