@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Canlı Sohbet & Sunucu Bilgileri</title>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        .status, .players, .info {
+            font-size: 18px;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .online { color: #4CAF50; font-weight: bold; }
+        .offline { color: #F44336; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 Minecraft Sunucu Bilgileri</h1>
+        <p id="server-status" class="status">Yükleniyor...</p>
+        <p id="server-info" class="info"></p>
+        <p id="player-count" class="players"></p>
+        <p id="player-list" class="players"></p>
+    </div>
+
+    <div class="w-full max-w-2xl bg-gray-900 p-6 rounded-lg shadow-2xl flex flex-col border border-gray-700">
+        <h1 class="text-3xl font-bold text-center mb-4 text-green-400">Minecraft Canlı Sohbet</h1>
+        
+        <div id="chat-box" class="h-80 overflow-y-auto p-4 border border-gray-700 rounded-lg bg-gray-800 flex flex-col space-y-2 sm:h-96 md:h-[30rem] shadow-inner">
+            <!-- Sohbet mesajları burada görünecek -->
+        </div>
+    </div>
+    
+    <script>
+        const socket = io("http://localhost:3000");
+        const chatBox = document.getElementById("chat-box");
+        
+        socket.on("chatMessage", (data) => {
+            const messageElement = document.createElement("div");
+            messageElement.classList.add("p-3", "rounded-lg", "mb-2", "max-w-xs", "bg-gray-700", "text-white", "break-words", "sm:max-w-sm", "md:max-w-md", "lg:max-w-lg", "shadow-md");
+            messageElement.innerHTML = `<span class='font-bold text-green-300'>${data.username}:</span> ${data.message}`;
+            chatBox.appendChild(messageElement);
+            chatBox.scrollTop = chatBox.scrollHeight; // Otomatik kaydırma
+        });
+
+        const serverIp = "mc.toxiox.rf.gd";
+        const serverPort = "28202";
+
+        async function fetchServerStatus() {
+            try {
+                const response = await fetch(`https://api.mcstatus.io/v2/status/bedrock/${serverIp}:${serverPort}`);
+                const data = await response.json();
+                
+                if (data.online) {
+                    document.getElementById("server-status").innerHTML = "Sunucu Durumu: <span class='online'>Online</span>";
+                    document.getElementById("server-info").innerText = `🌐 Sunucu: ${data.motd.clean} | ⚙️ Versiyon: ${data.version.name} `;
+                    document.getElementById("player-count").innerText = `👥 Oyuncu Sayısı: ${data.players.online} / ${data.players.max}`;
+                    document.getElementById("player-list").innerText = data.players.online > 0 ?  `🟢 Bağlı Oyuncular: ${data.players.list.map(player => player.name_raw).join(', ')}`  : "Bağlı oyuncu yok";
+                } else {
+                    document.getElementById("server-status").innerHTML = "Sunucu Durumu: <span class='offline'>Offline</span>";
+                    document.getElementById("server-info").innerText = "";
+                    document.getElementById("player-count").innerText = "";
+                    document.getElementById("player-list").innerText = "";
+                }
+            } catch (error) {
+                document.getElementById("server-status").innerHTML = "Sunucu Durumu: <span class='offline'>Hata Alındı</span>";
+            }
+        }
+
+        fetchServerStatus();
+        setInterval(fetchServerStatus, 5000);
+    </script>
+</body>
+</html>
